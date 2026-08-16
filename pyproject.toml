@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fiscalrail"
+version = "0.1.0"
+description = "Official Python SDK for the FiscalRail API"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "FiscalRail", email = "hello@fiscalrail.com" },
+]
+keywords = ["fiscalrail", "invoicing", "verifactu", "spain", "tax"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Typing :: Typed",
+]
+dependencies = [
+    "requests>=2.34,<3",
+]
+
+[project.urls]
+Documentation = "https://docs.fiscalrail.com/en/docs/python-sdk"
+Issues = "https://github.com/fiscalrail/fiscalrail-python/issues"
+Source = "https://github.com/fiscalrail/fiscalrail-python"
+
+[dependency-groups]
+dev = [
+    "datamodel-code-generator==0.73.0",
+    "hatchling>=1.27",
+    "pyyaml>=6,<7",
+    "pytest>=8.3",
+    "ruff>=0.12",
+    "ty>=0.0.72",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ty.src]
+include = ["src", "tests/typing"]
+
+[tool.ty.rules]
+missing-type-argument = "error"
+possibly-unresolved-reference = "warn"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fiscalrail"]
