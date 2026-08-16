@@ -5,10 +5,9 @@ token.
 
 ## One-time setup
 
-1. Decide and add the package's license before the first public release.
-2. Create a PyPI account, verify its email address, enable two-factor
+1. Create a PyPI account, verify its email address, enable two-factor
    authentication, and save the recovery codes.
-3. Register a pending Trusted Publisher at
+2. Register a pending Trusted Publisher at
    <https://pypi.org/manage/account/publishing/> with:
 
    - PyPI project name: `fiscalrail`
@@ -17,7 +16,7 @@ token.
    - Workflow filename: `release.yml`
    - Environment name: `pypi`
 
-4. Create a GitHub Environment named `pypi` and require a maintainer's approval
+3. Create a GitHub Environment named `pypi` and require a maintainer's approval
    before deployment. Restrict deployment to protected tags when the repository
    plan supports it.
 

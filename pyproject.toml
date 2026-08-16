@@ -7,6 +7,8 @@ name = "fiscalrail"
 version = "0.1.0"
 description = "Official Python SDK for the FiscalRail API"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
     { name = "FiscalRail", email = "hello@fiscalrail.com" },
