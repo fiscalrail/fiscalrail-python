@@ -3,11 +3,18 @@ from decimal import Decimal
 
 from fiscalrail import FiscalRail
 from fiscalrail.models import ApiKey, Customer, Event, Invoice, TaxId, TaxRegime
-from fiscalrail.params import CustomerCreateParams, InvoiceIssueParams
+from fiscalrail.params import (
+    AccountUpdateParams,
+    CustomerCreateParams,
+    InvoiceIssueParams,
+)
 from fiscalrail.tax_regimes.es import irpf, vat
 from fiscalrail.webhooks import construct_event
 
 client = FiscalRail(api_key="ak_test_example")
+
+account_update = AccountUpdateParams(invoice_numbering_scope="customer")
+client.accounts.update("acct_example", **account_update)
 
 customer_params = CustomerCreateParams(
     name="Acme SL",

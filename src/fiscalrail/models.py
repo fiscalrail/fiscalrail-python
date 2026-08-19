@@ -5,6 +5,8 @@ from typing import Generic, Literal, TypeVar
 
 from fiscalrail._generated.models import (
     Account,
+    AccountDefaultSeries,
+    AccountInvoiceNumberingScope,
     Address,
     ApiKey,
     Customer,
@@ -64,6 +66,8 @@ class Page(ResponseModel, Generic[ItemT]):
 
 __all__ = [
     "Account",
+    "AccountDefaultSeries",
+    "AccountInvoiceNumberingScope",
     "Address",
     "ApiKey",
     "Customer",

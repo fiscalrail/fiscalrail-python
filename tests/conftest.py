@@ -110,6 +110,7 @@ def customer_payload() -> dict[str, Any]:
         "object": "customer",
         "live": False,
         "name": "Acme SL",
+        "invoice_prefix": "ACMEXY",
         "tax_id": tax_id_payload(),
         "email": "billing@example.com",
         "phone": None,

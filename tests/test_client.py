@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import FrozenInstanceError
 from typing import Any
 
@@ -28,13 +29,15 @@ def account_payload() -> dict[str, Any]:
         "email": None,
         "phone": None,
         "address": address_payload(),
-        "environment": "test",
         "tax_regime": "es",
         "timezone": "Europe/Madrid",
         "invoice_locale": "en",
-        "default_invoice_series": "inv_ser_123",
-        "default_credit_note_series": "inv_ser_456",
-        "default_amendment_series": "inv_ser_789",
+        "invoice_numbering_scope": "account",
+        "default_series": {
+            "invoice": "inv_ser_123",
+            "credit_note": "inv_ser_456",
+            "amendment": "inv_ser_789",
+        },
         "created_at": "2026-08-16T10:00:00Z",
         "updated_at": "2026-08-16T10:00:00Z",
     }
@@ -47,7 +50,7 @@ def test_accepts_an_explicit_api_key() -> None:
             lambda request: json_response(
                 {"object": "list", "has_more": False, "data": []}
             )
-        )
+        ),
     ) as client:
         page = client.accounts.list()
     assert page.data == []
@@ -69,8 +72,38 @@ def test_sends_authentication_and_parses_account() -> None:
 
     page = make_client(handler).accounts.list()
     assert page.request_id == "req_123"
-    assert page.data[0].environment == "test"
-    assert page.data[0].default_invoice_series == "inv_ser_123"
+    assert page.data[0].live is False
+    assert page.data[0].invoice_numbering_scope == "account"
+    assert page.data[0].default_series.invoice == "inv_ser_123"
+
+
+def test_updates_account_invoicing_settings() -> None:
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        assert request.method == "PATCH"
+        assert request.url == "https://api.fiscalrail.test/v1/accounts/acct_123"
+        assert json.loads(request.body or "") == {
+            "invoice_numbering_scope": "customer",
+            "default_series": {
+                "invoice": "inv_ser_123",
+                "credit_note": "inv_ser_456",
+                "amendment": "inv_ser_789",
+            },
+        }
+        payload = account_payload()
+        payload["invoice_numbering_scope"] = "customer"
+        return json_response(payload)
+
+    account = make_client(handler).accounts.update(
+        "acct_123",
+        invoice_numbering_scope="customer",
+        default_series={
+            "invoice": "inv_ser_123",
+            "credit_note": "inv_ser_456",
+            "amendment": "inv_ser_789",
+        },
+    )
+
+    assert account.invoice_numbering_scope == "customer"
 
 
 def test_response_models_are_frozen_and_preserve_unknown_fields() -> None:

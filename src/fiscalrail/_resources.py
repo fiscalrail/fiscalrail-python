@@ -26,6 +26,7 @@ from fiscalrail.models import (
     TaxRegime,
 )
 from fiscalrail.params import (
+    AccountUpdateParams,
     ApiKeyCreateParams,
     CustomerCreateParams,
     CustomerUpdateParams,
@@ -73,6 +74,7 @@ WRAPPED_OPERATION_IDS = frozenset(
         "retrieveInvoiceSeries",
         "retrieveTaxId",
         "retrieveTaxRegime",
+        "updateAccount",
         "updateCustomer",
         "updateEventDestination",
         "updateInvoiceSeries",
@@ -140,6 +142,14 @@ class AccountsResource:
     def retrieve(self, account_id: str) -> Account:
         response = self._transport.request_json(
             *_operation("retrieveAccount", id=account_id), retry_safe=True
+        )
+        return _parse(Account, response)
+
+    def update(self, account_id: str, **params: Unpack[AccountUpdateParams]) -> Account:
+        response = self._transport.request_json(
+            *_operation("updateAccount", id=account_id),
+            body=params,
+            retry_safe=False,
         )
         return _parse(Account, response)
 

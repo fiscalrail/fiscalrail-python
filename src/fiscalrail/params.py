@@ -1,4 +1,13 @@
 from fiscalrail._generated.params import (
+    AccountDefaultSeries as AccountDefaultSeriesParams,
+)
+from fiscalrail._generated.params import (
+    AccountInvoiceNumberingScope,
+    InvoiceAmendmentReason,
+    InvoiceLocale,
+)
+from fiscalrail._generated.params import AccountUpdate as AccountUpdateParams
+from fiscalrail._generated.params import (
     AddressCreate as AddressCreateParams,
 )
 from fiscalrail._generated.params import (
@@ -16,10 +25,6 @@ from fiscalrail._generated.params import (
 )
 from fiscalrail._generated.params import (
     EventDestinationUpdate as EventDestinationUpdateParams,
-)
-from fiscalrail._generated.params import (
-    InvoiceAmendmentReason,
-    InvoiceLocale,
 )
 from fiscalrail._generated.params import (
     InvoiceCreate as InvoiceIssueParams,
@@ -47,6 +52,9 @@ from fiscalrail._types import (
 )
 
 __all__ = [
+    "AccountDefaultSeriesParams",
+    "AccountInvoiceNumberingScope",
+    "AccountUpdateParams",
     "AddressCreateParams",
     "AddressUpdateParams",
     "ApiKeyCreateParams",

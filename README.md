@@ -121,8 +121,9 @@ idempotency and retry behavior instead of generator-shaped HTTP calls.
 - `client.tax_regimes`
 
 Invoices use the domain verbs `issue` and `amend`; they are never updated.
-Customer and series resources expose ordinary create, retrieve, update, list
-and delete operations.
+Account resources expose list, retrieve, and update operations. Customer and
+series resources expose ordinary create, retrieve, update, list and delete
+operations.
 
 ## Verify webhooks
 
