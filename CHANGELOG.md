@@ -2,6 +2,13 @@
 
 All notable changes to the FiscalRail Python SDK are documented here.
 
+## 0.2.0 — 2026-08-19
+
+- Update the Account model for nested default series and account-wide invoice
+  numbering scope.
+- Add `client.accounts.update()` for changing Account invoicing settings.
+- Add customer invoice prefixes to response and create/update parameter types.
+
 ## 0.1.0 — 2026-08-16
 
 - Add a typed, pooled `requests` client for the complete FiscalRail API.

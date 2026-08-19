@@ -12,6 +12,7 @@ def test_create_customer_uses_typed_keyword_payload() -> None:
         assert urlsplit(request.url).path == "/v1/customers"
         assert request_json(request) == {
             "name": "Acme SL",
+            "invoice_prefix": "ACMEXY",
             "tax_id": {"country": "ES", "type": "es_nif", "value": "B87654323"},
             "email": "billing@example.com",
         }
@@ -19,11 +20,13 @@ def test_create_customer_uses_typed_keyword_payload() -> None:
 
     customer = make_client(handler).customers.create(
         name="Acme SL",
+        invoice_prefix="ACMEXY",
         tax_id={"country": "ES", "type": "es_nif", "value": "B87654323"},
         email="billing@example.com",
     )
     assert customer.id == "cus_123"
     assert customer.live is False
+    assert customer.invoice_prefix == "ACMEXY"
 
 
 def test_iter_follows_starting_after_cursor() -> None:

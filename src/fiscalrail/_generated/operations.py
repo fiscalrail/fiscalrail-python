@@ -33,6 +33,14 @@ OPERATIONS: Final[dict[str, Operation]] = {
         response_model="Account",
         success_statuses=(200,),
     ),
+    "updateAccount": Operation(
+        method="PATCH",
+        path="/accounts/{id}",
+        tag="Accounts",
+        request_model="AccountUpdate",
+        response_model="Account",
+        success_statuses=(200,),
+    ),
     "listApiKeys": Operation(
         method="GET",
         path="/api-keys",

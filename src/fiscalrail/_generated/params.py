@@ -23,10 +23,16 @@ InvoiceSeriesId: TypeAlias = str
 Live: TypeAlias = bool
 
 
-AccountEnvironment: TypeAlias = Literal["live", "test"]
-
-
 InvoiceLocale: TypeAlias = Literal["en", "es"]
+
+
+class AccountDefaultSeries(TypedDict, total=False):
+    invoice: Required[InvoiceSeriesId]
+    credit_note: Required[InvoiceSeriesId | None]
+    amendment: Required[InvoiceSeriesId | None]
+
+
+AccountInvoiceNumberingScope: TypeAlias = Literal["account", "customer"]
 
 
 class ApiKey(TypedDict, total=False):
@@ -399,7 +405,7 @@ class ResourceNotFoundErrorResponse(TypedDict, total=False):
 
 
 InvalidResourceErrorCode: TypeAlias = Literal[
-    "invalid_api_key", "invalid_invoice_series"
+    "invalid_account", "invalid_api_key", "invalid_invoice_series"
 ]
 
 
@@ -470,6 +476,11 @@ class ValidationDetail(TypedDict, total=False):
     metadata: Required[dict[str, Any]]
 
 
+class AccountUpdate(TypedDict, total=False):
+    invoice_numbering_scope: AccountInvoiceNumberingScope
+    default_series: AccountDefaultSeries
+
+
 class Event(TypedDict, total=False):
     id: Required[str]
     object: Required[Literal["event"]]
@@ -508,6 +519,7 @@ class TaxId(TypedDict, total=False):
 
 class CustomerCreate(TypedDict, total=False):
     name: Required[str]
+    invoice_prefix: str
     tax_id: Required[TaxIdInput]
     email: str | None
     phone: str | None
@@ -516,6 +528,7 @@ class CustomerCreate(TypedDict, total=False):
 
 class CustomerUpdate(TypedDict, total=False):
     name: str
+    invoice_prefix: str
     tax_id: TaxIdInput
     email: str | None
     phone: str | None
@@ -602,13 +615,11 @@ class Account(TypedDict, total=False):
     email: Required[str | None]
     phone: Required[str | None]
     address: Required[Address]
-    environment: Required[AccountEnvironment]
     tax_regime: Required[str]
     timezone: Required[str]
     invoice_locale: Required[InvoiceLocale]
-    default_invoice_series: Required[InvoiceSeriesId | None]
-    default_credit_note_series: Required[InvoiceSeriesId | None]
-    default_amendment_series: Required[InvoiceSeriesId | None]
+    invoice_numbering_scope: Required[AccountInvoiceNumberingScope]
+    default_series: Required[AccountDefaultSeries]
     created_at: Required[datetime]
     updated_at: Required[datetime]
 
@@ -636,6 +647,7 @@ class Customer(TypedDict, total=False):
     object: Required[Literal["customer"]]
     live: Required[Live]
     name: Required[str]
+    invoice_prefix: Required[str]
     tax_id: Required[TaxId]
     email: Required[str | None]
     phone: Required[str | None]

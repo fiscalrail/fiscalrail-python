@@ -26,14 +26,21 @@ InvoiceSeriesId: TypeAlias = str
 Live: TypeAlias = bool
 
 
-class AccountEnvironment(StrEnum):
-    live = "live"
-    test = "test"
-
-
 class InvoiceLocale(StrEnum):
     en = "en"
     es = "es"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class AccountDefaultSeries(FiscalRailModel):
+    invoice: InvoiceSeriesId
+    credit_note: InvoiceSeriesId | None
+    amendment: InvoiceSeriesId | None
+
+
+class AccountInvoiceNumberingScope(StrEnum):
+    account = "account"
+    customer = "customer"
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -489,6 +496,7 @@ class ResourceNotFoundErrorResponse(FiscalRailModel):
 
 
 class InvalidResourceErrorCode(StrEnum):
+    invalid_account = "invalid_account"
     invalid_api_key = "invalid_api_key"
     invalid_invoice_series = "invalid_invoice_series"
 
@@ -575,6 +583,14 @@ class ValidationDetail(FiscalRailModel):
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
+class AccountUpdate(FiscalRailModel):
+    invoice_numbering_scope: AccountInvoiceNumberingScope | None = (
+        AccountInvoiceNumberingScope.account
+    )
+    default_series: AccountDefaultSeries | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
 class Event(ResponseModel):
     id: str
     object: Literal["event"]
@@ -618,6 +634,7 @@ class TaxId(ResponseModel):
 class CustomerCreate(FiscalRailModel):
     name: str
     tax_id: TaxIdInput
+    invoice_prefix: str | None = None
     email: str | None = None
     phone: str | None = None
     address: AddressCreate | None = None
@@ -626,6 +643,7 @@ class CustomerCreate(FiscalRailModel):
 @dataclass(frozen=True, kw_only=True, slots=True)
 class CustomerUpdate(FiscalRailModel):
     name: str | None = None
+    invoice_prefix: str | None = None
     tax_id: TaxIdInput | None = None
     email: str | None = None
     phone: str | None = None
@@ -722,13 +740,11 @@ class Account(ResponseModel):
     email: str | None
     phone: str | None
     address: Address
-    environment: AccountEnvironment
     tax_regime: str
     timezone: str
     invoice_locale: InvoiceLocale
-    default_invoice_series: InvoiceSeriesId | None
-    default_credit_note_series: InvoiceSeriesId | None
-    default_amendment_series: InvoiceSeriesId | None
+    invoice_numbering_scope: AccountInvoiceNumberingScope
+    default_series: AccountDefaultSeries
     created_at: datetime
     updated_at: datetime
 
@@ -760,6 +776,7 @@ class Customer(ResponseModel):
     object: Literal["customer"]
     live: Live
     name: str
+    invoice_prefix: str
     tax_id: TaxId
     email: str | None
     phone: str | None
