@@ -55,6 +55,10 @@ def test_issue_serializes_python_values_and_country_helpers() -> None:
     assert invoice.request_id == "req_123"
     assert invoice.issue_date == date(2026, 8, 16)
     assert invoice.totals.payable == Decimal("2650.00")
+    assert invoice.payment_terms.due_date == date(2026, 9, 15)
+    assert invoice.payment_terms.options[0].bank_transfer.iban == (
+        "ES9121000418450200051332"
+    )
     assert invoice.to_dict(mode="json")["totals"]["payable"] == "2650.00"
 
 

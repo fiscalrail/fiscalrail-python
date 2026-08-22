@@ -21,6 +21,7 @@ from fiscalrail.models import (
     InvoicePdf,
     InvoiceSeries,
     Page,
+    PaymentInstruction,
     ResponseModel,
     TaxId,
     TaxRegime,
@@ -37,6 +38,8 @@ from fiscalrail.params import (
     InvoiceLocale,
     InvoiceSeriesCreateParams,
     InvoiceSeriesUpdateParams,
+    PaymentInstructionCreateParams,
+    PaymentInstructionUpdateParams,
 )
 
 ModelT = TypeVar("ModelT", bound=ResponseModel)
@@ -61,6 +64,7 @@ WRAPPED_OPERATION_IDS = frozenset(
         "listEvents",
         "listInvoiceSeries",
         "listInvoices",
+        "listPaymentInstructions",
         "listTaxRegimes",
         "amendInvoice",
         "renderInvoicePdf",
@@ -72,12 +76,16 @@ WRAPPED_OPERATION_IDS = frozenset(
         "retrieveInvoice",
         "retrieveInvoicePdf",
         "retrieveInvoiceSeries",
+        "retrievePaymentInstruction",
         "retrieveTaxId",
         "retrieveTaxRegime",
         "updateAccount",
         "updateCustomer",
         "updateEventDestination",
         "updateInvoiceSeries",
+        "createPaymentInstruction",
+        "deletePaymentInstruction",
+        "updatePaymentInstruction",
     }
 )
 
@@ -463,6 +471,62 @@ class InvoiceSeriesResource:
             retry_safe=True,
         )
         return _parse_page(InvoiceSeries, response)
+
+
+class PaymentInstructionsResource:
+    def __init__(self, transport: Transport) -> None:
+        self._transport = transport
+
+    def create(
+        self, **params: Unpack[PaymentInstructionCreateParams]
+    ) -> PaymentInstruction:
+        response = self._transport.request_json(
+            *_operation("createPaymentInstruction"), body=params, retry_safe=False
+        )
+        return _parse(PaymentInstruction, response)
+
+    def retrieve(self, payment_instruction_id: str) -> PaymentInstruction:
+        response = self._transport.request_json(
+            *_operation("retrievePaymentInstruction", id=payment_instruction_id),
+            retry_safe=True,
+        )
+        return _parse(PaymentInstruction, response)
+
+    def update(
+        self,
+        payment_instruction_id: str,
+        **params: Unpack[PaymentInstructionUpdateParams],
+    ) -> PaymentInstruction:
+        response = self._transport.request_json(
+            *_operation("updatePaymentInstruction", id=payment_instruction_id),
+            body=params,
+            retry_safe=False,
+        )
+        return _parse(PaymentInstruction, response)
+
+    def delete(self, payment_instruction_id: str) -> None:
+        self._transport.request_empty(
+            *_operation("deletePaymentInstruction", id=payment_instruction_id),
+            retry_safe=False,
+        )
+
+    def list(
+        self,
+        *,
+        limit: int | None = None,
+        starting_after: str | None = None,
+        ending_before: str | None = None,
+    ) -> Page[PaymentInstruction]:
+        response = self._transport.request_json(
+            *_operation("listPaymentInstructions"),
+            params=_params(
+                limit=limit,
+                starting_after=starting_after,
+                ending_before=ending_before,
+            ),
+            retry_safe=True,
+        )
+        return _parse_page(PaymentInstruction, response)
 
 
 class InvoicesResource:

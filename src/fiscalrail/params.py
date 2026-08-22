@@ -33,6 +33,9 @@ from fiscalrail._generated.params import (
     InvoiceLineCreate as InvoiceLineParams,
 )
 from fiscalrail._generated.params import (
+    InvoicePaymentTermsCreate as InvoicePaymentTermsParams,
+)
+from fiscalrail._generated.params import (
     InvoiceSeriesCreate as InvoiceSeriesCreateParams,
 )
 from fiscalrail._generated.params import (
@@ -40,6 +43,18 @@ from fiscalrail._generated.params import (
 )
 from fiscalrail._generated.params import (
     InvoiceSupplyPeriodCreate as InvoiceSupplyPeriodParams,
+)
+from fiscalrail._generated.params import (
+    PaymentInstructionBankTransferInput as PaymentInstructionBankTransferParams,
+)
+from fiscalrail._generated.params import (
+    PaymentInstructionBankTransferUpdate as PaymentInstructionBankTransferUpdateParams,
+)
+from fiscalrail._generated.params import (
+    PaymentInstructionCreate as PaymentInstructionCreateParams,
+)
+from fiscalrail._generated.params import (
+    PaymentInstructionUpdate as PaymentInstructionUpdateParams,
 )
 from fiscalrail._generated.params import (
     TaxIdInput as TaxIdParams,
@@ -67,9 +82,14 @@ __all__ = [
     "InvoiceIssueParams",
     "InvoiceLineParams",
     "InvoiceLocale",
+    "InvoicePaymentTermsParams",
     "InvoiceSeriesCreateParams",
     "InvoiceSeriesUpdateParams",
     "InvoiceSupplyPeriodParams",
+    "PaymentInstructionBankTransferParams",
+    "PaymentInstructionBankTransferUpdateParams",
+    "PaymentInstructionCreateParams",
+    "PaymentInstructionUpdateParams",
     "TaxIdParams",
     "TaxReference",
     "TaxReferenceInput",

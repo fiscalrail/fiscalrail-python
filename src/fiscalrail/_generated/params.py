@@ -20,6 +20,9 @@ ApiKeyId: TypeAlias = str
 InvoiceSeriesId: TypeAlias = str
 
 
+PaymentInstructionId: TypeAlias = str
+
+
 Live: TypeAlias = bool
 
 
@@ -168,6 +171,24 @@ class InvoiceSeriesList(TypedDict, total=False):
     data: Required[list[InvoiceSeries]]
 
 
+class PaymentInstructionBankTransfer(TypedDict, total=False):
+    beneficiary: Required[str]
+    iban: Required[str]
+    bic: Required[str | None]
+
+
+class PaymentInstructionBankTransferInput(TypedDict, total=False):
+    beneficiary: Required[str]
+    iban: Required[str]
+    bic: str | None
+
+
+class PaymentInstructionBankTransferUpdate(TypedDict, total=False):
+    beneficiary: str
+    iban: str
+    bic: str | None
+
+
 TaxRegimeId: TypeAlias = Literal["global", "es"]
 
 
@@ -258,6 +279,11 @@ class InvoiceSupplyPeriodCreate(TypedDict, total=False):
     end_date: Required[date]
 
 
+class InvoicePaymentTermsCreate(TypedDict, total=False):
+    due_date: date | None
+    options: list[PaymentInstructionId]
+
+
 InvoiceKind: TypeAlias = Literal["invoice", "credit_note"]
 
 
@@ -281,6 +307,13 @@ class InvoiceReference(TypedDict, total=False):
 class InvoiceSupplyPeriod(TypedDict, total=False):
     start_date: Required[date]
     end_date: Required[date]
+
+
+class InvoicePaymentOption(TypedDict, total=False):
+    payment_instruction: Required[PaymentInstructionId]
+    type: Required[Literal["bank_transfer"]]
+    reference: Required[str]
+    bank_transfer: Required[PaymentInstructionBankTransfer]
 
 
 class GlobalInvoiceTaxRegime(TypedDict, total=False):
@@ -405,7 +438,10 @@ class ResourceNotFoundErrorResponse(TypedDict, total=False):
 
 
 InvalidResourceErrorCode: TypeAlias = Literal[
-    "invalid_account", "invalid_api_key", "invalid_invoice_series"
+    "invalid_account",
+    "invalid_api_key",
+    "invalid_invoice_series",
+    "invalid_payment_instruction",
 ]
 
 
@@ -479,6 +515,7 @@ class ValidationDetail(TypedDict, total=False):
 class AccountUpdate(TypedDict, total=False):
     invoice_numbering_scope: AccountInvoiceNumberingScope
     default_series: AccountDefaultSeries
+    default_payment_instructions: list[PaymentInstructionId]
 
 
 class Event(TypedDict, total=False):
@@ -497,6 +534,35 @@ class EventList(TypedDict, total=False):
     object: Required[Literal["list"]]
     has_more: Required[bool]
     data: Required[list[Event]]
+
+
+class PaymentInstruction(TypedDict, total=False):
+    id: Required[PaymentInstructionId]
+    object: Required[Literal["payment_instruction"]]
+    live: Required[Live]
+    account: Required[AccountId]
+    label: Required[str]
+    type: Required[Literal["bank_transfer"]]
+    bank_transfer: Required[PaymentInstructionBankTransfer]
+    created_at: Required[datetime]
+    updated_at: Required[datetime]
+
+
+class PaymentInstructionCreate(TypedDict, total=False):
+    label: Required[str]
+    type: Required[Literal["bank_transfer"]]
+    bank_transfer: Required[PaymentInstructionBankTransferInput]
+
+
+class PaymentInstructionUpdate(TypedDict, total=False):
+    label: str
+    bank_transfer: PaymentInstructionBankTransferUpdate
+
+
+class PaymentInstructionList(TypedDict, total=False):
+    object: Required[Literal["list"]]
+    has_more: Required[bool]
+    data: Required[list[PaymentInstruction]]
 
 
 class TaxRegimeTax(TypedDict, total=False):
@@ -554,6 +620,11 @@ class InvoiceAmendment(TypedDict, total=False):
     credit_note: Required[InvoiceReference | None]
     replacement: Required[InvoiceReference | None]
     created_at: Required[datetime]
+
+
+class InvoicePaymentTerms(TypedDict, total=False):
+    due_date: Required[date | None]
+    options: Required[list[InvoicePaymentOption]]
 
 
 class VerifactuRegistration(TypedDict, total=False):
@@ -620,6 +691,7 @@ class Account(TypedDict, total=False):
     invoice_locale: Required[InvoiceLocale]
     invoice_numbering_scope: Required[AccountInvoiceNumberingScope]
     default_series: Required[AccountDefaultSeries]
+    default_payment_instructions: Required[list[PaymentInstructionId]]
     created_at: Required[datetime]
     updated_at: Required[datetime]
 
@@ -678,6 +750,7 @@ class InvoiceCreate(TypedDict, total=False):
     series: str
     issue_date: date
     supply_period: InvoiceSupplyPeriodCreate
+    payment_terms: InvoicePaymentTermsCreate
     lines: Required[list[InvoiceLineCreate]]
 
 
@@ -713,6 +786,7 @@ class Invoice(TypedDict, total=False):
     currency: Required[Literal["EUR"]]
     supplier: Required[InvoiceParty]
     customer: Required[InvoiceParty | None]
+    payment_terms: Required[InvoicePaymentTerms]
     lines: Required[list[InvoiceLine]]
     tax_totals: Required[list[InvoiceTaxTotal]]
     totals: Required[InvoiceTotals]

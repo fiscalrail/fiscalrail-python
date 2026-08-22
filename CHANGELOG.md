@@ -2,6 +2,17 @@
 
 All notable changes to the FiscalRail Python SDK are documented here.
 
+## 0.3.0 — 2026-08-22
+
+- Add `client.payment_instructions` with create, retrieve, update, list, and
+  delete operations for bank-transfer instructions.
+- Add account default payment instructions and invoice payment terms to the
+  generated request and response types.
+- Decode rendered payment options, including their snapshotted bank details and
+  invoice payment reference.
+- Add `InvalidPaymentInstructionError` for payment-instruction validation
+  failures.
+
 ## 0.2.0 — 2026-08-19
 
 - Update the Account model for nested default series and account-wide invoice

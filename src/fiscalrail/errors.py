@@ -105,6 +105,10 @@ class InvalidInvoiceSeriesError(APIError):
     pass
 
 
+class InvalidPaymentInstructionError(APIError):
+    pass
+
+
 class InvalidInvoiceAmendmentError(APIError):
     pass
 
@@ -138,6 +142,7 @@ _ERROR_CLASSES: dict[str, type[APIError]] = {
     "customer_not_found": CustomerNotFoundError,
     "invalid_invoice": InvalidInvoiceError,
     "invalid_invoice_series": InvalidInvoiceSeriesError,
+    "invalid_payment_instruction": InvalidPaymentInstructionError,
     "invalid_invoice_amendment": InvalidInvoiceAmendmentError,
     "account_not_configured": AccountNotConfiguredError,
     "balance_exhausted": BalanceExhaustedError,
