@@ -23,6 +23,9 @@ ApiKeyId: TypeAlias = str
 InvoiceSeriesId: TypeAlias = str
 
 
+PaymentInstructionId: TypeAlias = str
+
+
 Live: TypeAlias = bool
 
 
@@ -207,6 +210,27 @@ class InvoiceSeriesList(FiscalRailModel):
     data: list[InvoiceSeries]
 
 
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstructionBankTransfer(FiscalRailModel):
+    beneficiary: str
+    iban: str
+    bic: str | None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstructionBankTransferInput(FiscalRailModel):
+    beneficiary: str
+    iban: str
+    bic: str | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstructionBankTransferUpdate(FiscalRailModel):
+    beneficiary: str | None = None
+    iban: str | None = None
+    bic: str | None = None
+
+
 class TaxRegimeId(StrEnum):
     global_ = "global"
     es = "es"
@@ -322,6 +346,12 @@ class InvoiceSupplyPeriodCreate(FiscalRailModel):
     end_date: date
 
 
+@dataclass(frozen=True, kw_only=True, slots=True)
+class InvoicePaymentTermsCreate(FiscalRailModel):
+    due_date: date | None = None
+    options: list[PaymentInstructionId] | None = None
+
+
 class InvoiceKind(StrEnum):
     invoice = "invoice"
     credit_note = "credit_note"
@@ -348,6 +378,14 @@ class InvoiceReference(FiscalRailModel):
 class InvoiceSupplyPeriod(FiscalRailModel):
     start_date: date
     end_date: date
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class InvoicePaymentOption(FiscalRailModel):
+    payment_instruction: PaymentInstructionId
+    type: Literal["bank_transfer"]
+    reference: str
+    bank_transfer: PaymentInstructionBankTransfer
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -499,6 +537,7 @@ class InvalidResourceErrorCode(StrEnum):
     invalid_account = "invalid_account"
     invalid_api_key = "invalid_api_key"
     invalid_invoice_series = "invalid_invoice_series"
+    invalid_payment_instruction = "invalid_payment_instruction"
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -588,6 +627,7 @@ class AccountUpdate(FiscalRailModel):
         AccountInvoiceNumberingScope.account
     )
     default_series: AccountDefaultSeries | None = None
+    default_payment_instructions: list[PaymentInstructionId] | None = None
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -608,6 +648,39 @@ class EventList(FiscalRailModel):
     object: Literal["list"]
     has_more: bool
     data: list[Event]
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstruction(ResponseModel):
+    id: PaymentInstructionId
+    object: Literal["payment_instruction"]
+    live: Live
+    account: AccountId
+    label: str
+    type: Literal["bank_transfer"]
+    bank_transfer: PaymentInstructionBankTransfer
+    created_at: datetime
+    updated_at: datetime
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstructionCreate(FiscalRailModel):
+    label: str
+    type: Literal["bank_transfer"]
+    bank_transfer: PaymentInstructionBankTransferInput
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstructionUpdate(FiscalRailModel):
+    label: str | None = None
+    bank_transfer: PaymentInstructionBankTransferUpdate | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class PaymentInstructionList(FiscalRailModel):
+    object: Literal["list"]
+    has_more: bool
+    data: list[PaymentInstruction]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -671,6 +744,12 @@ class InvoiceAmendment(ResponseModel):
     credit_note: InvoiceReference | None
     replacement: InvoiceReference | None
     created_at: datetime
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class InvoicePaymentTerms(FiscalRailModel):
+    due_date: date | None
+    options: list[InvoicePaymentOption]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -745,6 +824,7 @@ class Account(ResponseModel):
     invoice_locale: InvoiceLocale
     invoice_numbering_scope: AccountInvoiceNumberingScope
     default_series: AccountDefaultSeries
+    default_payment_instructions: list[PaymentInstructionId]
     created_at: datetime
     updated_at: datetime
 
@@ -812,6 +892,7 @@ class InvoiceCreate(FiscalRailModel):
     series: str | None = None
     issue_date: date | None = None
     supply_period: InvoiceSupplyPeriodCreate | None = None
+    payment_terms: InvoicePaymentTermsCreate | None = None
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -850,6 +931,7 @@ class Invoice(ResponseModel):
     currency: Literal["EUR"]
     supplier: InvoiceParty
     customer: InvoiceParty | None
+    payment_terms: InvoicePaymentTerms
     lines: list[InvoiceLine]
     tax_totals: list[InvoiceTaxTotal]
     totals: InvoiceTotals

@@ -30,6 +30,7 @@ BASE_CLASS_MAP = {
         "InvoiceAmendment",
         "InvoicePdf",
         "InvoiceSeries",
+        "PaymentInstruction",
         "TaxId",
         "TaxRegime",
     )

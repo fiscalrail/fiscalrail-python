@@ -38,6 +38,7 @@ def account_payload() -> dict[str, Any]:
             "credit_note": "inv_ser_456",
             "amendment": "inv_ser_789",
         },
+        "default_payment_instructions": ["pay_ins_123"],
         "created_at": "2026-08-16T10:00:00Z",
         "updated_at": "2026-08-16T10:00:00Z",
     }
@@ -75,6 +76,7 @@ def test_sends_authentication_and_parses_account() -> None:
     assert page.data[0].live is False
     assert page.data[0].invoice_numbering_scope == "account"
     assert page.data[0].default_series.invoice == "inv_ser_123"
+    assert page.data[0].default_payment_instructions == ["pay_ins_123"]
 
 
 def test_updates_account_invoicing_settings() -> None:

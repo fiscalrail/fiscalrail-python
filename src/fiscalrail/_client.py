@@ -13,6 +13,7 @@ from fiscalrail._resources import (
     InvoicePdfsResource,
     InvoiceSeriesResource,
     InvoicesResource,
+    PaymentInstructionsResource,
     TaxIdsResource,
     TaxRegimesResource,
 )
@@ -49,6 +50,7 @@ class FiscalRail:
         self.invoice_series = InvoiceSeriesResource(self._transport)
         self.invoices = InvoicesResource(self._transport)
         self.invoice_pdfs = InvoicePdfsResource(self._transport)
+        self.payment_instructions = PaymentInstructionsResource(self._transport)
         self.tax_ids = TaxIdsResource(self._transport)
         self.tax_regimes = TaxRegimesResource(self._transport)
 

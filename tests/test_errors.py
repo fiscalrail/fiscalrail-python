@@ -4,7 +4,11 @@ import pytest
 import requests
 from conftest import json_response, make_client
 
-from fiscalrail import InvalidInvoiceError, ResponseParseError
+from fiscalrail import (
+    InvalidInvoiceError,
+    InvalidPaymentInstructionError,
+    ResponseParseError,
+)
 from fiscalrail.tax_regimes.es import vat
 
 
@@ -62,3 +66,26 @@ def test_reports_response_contract_failures() -> None:
     assert error.model == "Page[Customer]"
     assert error.field == "$.data[0].id"
     assert error.request_id == "req_bad_response"
+
+
+def test_maps_invalid_payment_instructions() -> None:
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        return json_response(
+            {
+                "error": {
+                    "code": "invalid_payment_instruction",
+                    "message": "The payment instruction is invalid",
+                }
+            },
+            status_code=422,
+        )
+
+    with pytest.raises(InvalidPaymentInstructionError):
+        make_client(handler).payment_instructions.create(
+            label="Bad account",
+            type="bank_transfer",
+            bank_transfer={
+                "beneficiary": "Example supplier",
+                "iban": "ES00INVALID",
+            },
+        )

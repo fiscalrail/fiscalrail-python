@@ -154,6 +154,21 @@ def invoice_payload() -> dict[str, Any]:
             "phone": None,
             "address": address_payload(),
         },
+        "payment_terms": {
+            "due_date": "2026-09-15",
+            "options": [
+                {
+                    "payment_instruction": "pay_ins_123",
+                    "type": "bank_transfer",
+                    "reference": "TEST-INV-00001",
+                    "bank_transfer": {
+                        "beneficiary": "Example supplier",
+                        "iban": "ES9121000418450200051332",
+                        "bic": "CAIXESBBXXX",
+                    },
+                }
+            ],
+        },
         "lines": [
             {
                 "index": 1,

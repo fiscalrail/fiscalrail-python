@@ -75,6 +75,45 @@ invoice = client.invoices.issue(
 )
 ```
 
+## Payment instructions
+
+Create reusable payment instructions, optionally make them account defaults,
+and set an invoice due date without sending bank details on every issuance:
+
+```python
+from datetime import date
+
+instruction = client.payment_instructions.create(
+    label="Main EUR account",
+    type="bank_transfer",
+    bank_transfer={
+        "beneficiary": "Example supplier",
+        "iban": "ES91 2100 0418 4502 0005 1332",
+        "bic": "CAIXESBBXXX",
+    },
+)
+
+client.accounts.update(
+    "acct_...",
+    default_payment_instructions=[instruction.id],
+)
+
+invoice = client.invoices.issue(
+    payment_terms={"due_date": date(2026, 9, 30)},
+    lines=[
+        {
+            "description": "Consulting services",
+            "unit_price": "2500.00",
+            "taxes": [vat.general],
+        }
+    ],
+)
+```
+
+Pass `payment_terms={"options": [instruction.id]}` to override the account
+defaults for a specific invoice. Pass an empty `options` list to render no
+payment instructions.
+
 ## Typed request values
 
 Calls are type checked directly. Exported `TypedDict` definitions also make
@@ -117,13 +156,14 @@ idempotency and retry behavior instead of generator-shaped HTTP calls.
 - `client.invoice_series`
 - `client.invoices`
 - `client.invoice_pdfs`
+- `client.payment_instructions`
 - `client.tax_ids`
 - `client.tax_regimes`
 
 Invoices use the domain verbs `issue` and `amend`; they are never updated.
 Account resources expose list, retrieve, and update operations. Customer and
-series resources expose ordinary create, retrieve, update, list and delete
-operations.
+series and payment-instruction resources expose ordinary create, retrieve,
+update, list and delete operations.
 
 ## Verify webhooks
 
