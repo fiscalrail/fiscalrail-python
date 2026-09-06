@@ -14,6 +14,9 @@ RequestId: TypeAlias = str
 AccountId: TypeAlias = str
 
 
+BalanceId: TypeAlias = str
+
+
 ApiKeyId: TypeAlias = str
 
 
@@ -27,6 +30,15 @@ Live: TypeAlias = bool
 
 
 InvoiceLocale: TypeAlias = Literal["en", "es"]
+
+
+class Address1(TypedDict, total=False):
+    line_1: str | None
+    line_2: str | None
+    city: str | None
+    postal_code: str | None
+    state: str | None
+    country: str | None
 
 
 class AccountDefaultSeries(TypedDict, total=False):
@@ -67,6 +79,28 @@ class RelatedObject(TypedDict, total=False):
 class EventData(TypedDict, total=False):
     object: Required[dict[str, Any]]
     previous_attributes: dict[str, Any]
+
+
+class GlobalAccountTaxRegime(TypedDict, total=False):
+    object: Required[Literal["account_tax_regime"]]
+    account: Required[AccountId]
+    key: Required[Literal["global"]]
+
+
+SpanishAccountRepresentationStatus: TypeAlias = Literal[
+    "not_started", "pending_verification", "verified", "revoked", "invalid"
+]
+
+
+class SpanishAccountRepresentation(TypedDict, total=False):
+    kind: Required[Literal["aeat_registered_power"]]
+    power_code: Required[Literal["IZ860"]]
+    status: Required[SpanishAccountRepresentationStatus]
+    verified_at: Required[datetime | None]
+    last_checked_at: Required[datetime | None]
+
+
+BalanceCurrency: TypeAlias = Literal["EUR"]
 
 
 BalanceTransactionKind: TypeAlias = Literal[
@@ -513,6 +547,7 @@ class ValidationDetail(TypedDict, total=False):
 
 
 class AccountUpdate(TypedDict, total=False):
+    address: Address1
     invoice_numbering_scope: AccountInvoiceNumberingScope
     default_series: AccountDefaultSeries
     default_payment_instructions: list[PaymentInstructionId]
@@ -528,6 +563,20 @@ class Event(TypedDict, total=False):
     actor: Required[EventActor]
     related_object: Required[RelatedObject | None]
     data: Required[EventData]
+
+
+class SpanishAccountTaxRegimeDetails(TypedDict, total=False):
+    representation: Required[SpanishAccountRepresentation | None]
+
+
+class Balance(TypedDict, total=False):
+    id: Required[BalanceId]
+    object: Required[Literal["balance"]]
+    live: Required[Live]
+    account: Required[AccountId]
+    amount: Required[Decimal]
+    currency: Required[BalanceCurrency]
+    updated_at: Required[datetime]
 
 
 class EventList(TypedDict, total=False):
@@ -702,6 +751,13 @@ class AccountList(TypedDict, total=False):
     data: Required[list[Account]]
 
 
+class SpanishAccountTaxRegime(TypedDict, total=False):
+    object: Required[Literal["account_tax_regime"]]
+    account: Required[AccountId]
+    key: Required[Literal["es"]]
+    es: Required[SpanishAccountTaxRegimeDetails]
+
+
 class TaxRegime(TypedDict, total=False):
     id: Required[TaxRegimeId]
     object: Required[Literal["tax_regime"]]
@@ -743,6 +799,9 @@ class InvoiceLineCreate(TypedDict, total=False):
 
 class Verifactu(TypedDict, total=False):
     registrations: Required[list[VerifactuRegistration]]
+
+
+AccountTaxRegime: TypeAlias = GlobalAccountTaxRegime | SpanishAccountTaxRegime
 
 
 class InvoiceCreate(TypedDict, total=False):

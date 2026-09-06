@@ -3,7 +3,9 @@ from decimal import Decimal
 
 from fiscalrail import FiscalRail
 from fiscalrail.models import (
+    AccountTaxRegime,
     ApiKey,
+    Balance,
     Customer,
     Event,
     Invoice,
@@ -22,6 +24,12 @@ from fiscalrail.webhooks import construct_event
 
 client = FiscalRail(api_key="ak_test_example")
 
+balance: Balance = client.balances.retrieve("acct_example")
+balance_amount: Decimal = balance.amount
+account_regime: AccountTaxRegime = client.account_tax_regimes.retrieve("acct_example")
+if account_regime.key == "es" and account_regime.es.representation is not None:
+    representation_status: str = account_regime.es.representation.status
+
 payment_instruction_params = PaymentInstructionCreateParams(
     label="Main EUR account",
     type="bank_transfer",
@@ -35,6 +43,7 @@ payment_instruction: PaymentInstruction = client.payment_instructions.create(
 )
 
 account_update = AccountUpdateParams(
+    address={"line_1": "Updated street 1", "line_2": None},
     invoice_numbering_scope="customer",
     default_payment_instructions=[payment_instruction.id],
 )

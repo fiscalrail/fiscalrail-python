@@ -2,6 +2,16 @@
 
 All notable changes to the FiscalRail Python SDK are documented here.
 
+## 0.4.0 — Unreleased
+
+- Add `client.balances.retrieve(account_id)` with precise decimal amounts and
+  response metadata.
+- Add `client.account_tax_regimes.retrieve(account_id)` with typed Global and
+  Spanish responses, including nullable Spanish representation details.
+- Refresh generated types against the published OpenAPI contract, including
+  account address updates, restoring coverage of all 42 public operations.
+- Align the version with the initial Ruby SDK release.
+
 ## 0.3.0 — 2026-08-22
 
 - Add `client.payment_instructions` with create, retrieve, update, list, and

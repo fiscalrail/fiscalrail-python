@@ -12,10 +12,13 @@ from fiscalrail._transport import JsonResponse, Transport
 from fiscalrail.errors import ResponseParseError
 from fiscalrail.models import (
     Account,
+    AccountTaxRegime,
     ApiKey,
+    Balance,
     Customer,
     Event,
     EventDestination,
+    GlobalAccountTaxRegime,
     Invoice,
     InvoiceAmendment,
     InvoicePdf,
@@ -23,6 +26,7 @@ from fiscalrail.models import (
     Page,
     PaymentInstruction,
     ResponseModel,
+    SpanishAccountTaxRegime,
     TaxId,
     TaxRegime,
 )
@@ -69,7 +73,9 @@ WRAPPED_OPERATION_IDS = frozenset(
         "amendInvoice",
         "renderInvoicePdf",
         "retrieveAccount",
+        "retrieveAccountTaxRegime",
         "retrieveApiKey",
+        "retrieveBalance",
         "retrieveCustomer",
         "retrieveEventDestination",
         "retrieveEvent",
@@ -160,6 +166,33 @@ class AccountsResource:
             retry_safe=False,
         )
         return _parse(Account, response)
+
+
+class BalancesResource:
+    def __init__(self, transport: Transport) -> None:
+        self._transport = transport
+
+    def retrieve(self, account_id: str) -> Balance:
+        response = self._transport.request_json(
+            *_operation("retrieveBalance", account_id=account_id), retry_safe=True
+        )
+        return _parse(Balance, response)
+
+
+class AccountTaxRegimesResource:
+    def __init__(self, transport: Transport) -> None:
+        self._transport = transport
+
+    def retrieve(self, account_id: str) -> AccountTaxRegime:
+        response = self._transport.request_json(
+            *_operation("retrieveAccountTaxRegime", account_id=account_id),
+            retry_safe=True,
+        )
+        # The contract discriminates this response by its regime key. Both
+        # generated models validate their literal key and retain response metadata.
+        if isinstance(response.data, dict) and response.data.get("key") == "global":
+            return _parse(GlobalAccountTaxRegime, response)
+        return _parse(SpanishAccountTaxRegime, response)
 
 
 class ApiKeysResource:

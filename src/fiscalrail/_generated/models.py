@@ -17,6 +17,9 @@ RequestId: TypeAlias = str
 AccountId: TypeAlias = str
 
 
+BalanceId: TypeAlias = str
+
+
 ApiKeyId: TypeAlias = str
 
 
@@ -32,6 +35,16 @@ Live: TypeAlias = bool
 class InvoiceLocale(StrEnum):
     en = "en"
     es = "es"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class Address1(FiscalRailModel):
+    line_1: str | None = None
+    line_2: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    state: str | None = None
+    country: str | None = None
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -80,6 +93,34 @@ class RelatedObject(FiscalRailModel):
 class EventData(FiscalRailModel):
     object: dict[str, Any]
     previous_attributes: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class GlobalAccountTaxRegime(ResponseModel):
+    object: Literal["account_tax_regime"]
+    account: AccountId
+    key: Literal["global"]
+
+
+class SpanishAccountRepresentationStatus(StrEnum):
+    not_started = "not_started"
+    pending_verification = "pending_verification"
+    verified = "verified"
+    revoked = "revoked"
+    invalid = "invalid"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SpanishAccountRepresentation(FiscalRailModel):
+    kind: Literal["aeat_registered_power"]
+    power_code: Literal["IZ860"]
+    status: SpanishAccountRepresentationStatus
+    verified_at: datetime | None
+    last_checked_at: datetime | None
+
+
+class BalanceCurrency(StrEnum):
+    EUR = "EUR"
 
 
 class BalanceTransactionKind(StrEnum):
@@ -623,6 +664,7 @@ class ValidationDetail(FiscalRailModel):
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class AccountUpdate(FiscalRailModel):
+    address: Address1 | None = None
     invoice_numbering_scope: AccountInvoiceNumberingScope | None = (
         AccountInvoiceNumberingScope.account
     )
@@ -641,6 +683,22 @@ class Event(ResponseModel):
     actor: EventActor
     related_object: RelatedObject | None
     data: EventData
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SpanishAccountTaxRegimeDetails(FiscalRailModel):
+    representation: SpanishAccountRepresentation | None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class Balance(ResponseModel):
+    id: BalanceId
+    object: Literal["balance"]
+    live: Live
+    account: AccountId
+    amount: Decimal
+    currency: BalanceCurrency
+    updated_at: datetime
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -837,6 +895,14 @@ class AccountList(FiscalRailModel):
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
+class SpanishAccountTaxRegime(ResponseModel):
+    object: Literal["account_tax_regime"]
+    account: AccountId
+    key: Literal["es"]
+    es: SpanishAccountTaxRegimeDetails
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
 class TaxRegime(ResponseModel):
     id: TaxRegimeId
     object: Literal["tax_regime"]
@@ -883,6 +949,9 @@ class InvoiceLineCreate(FiscalRailModel):
 @dataclass(frozen=True, kw_only=True, slots=True)
 class Verifactu(FiscalRailModel):
     registrations: list[VerifactuRegistration]
+
+
+AccountTaxRegime: TypeAlias = GlobalAccountTaxRegime | SpanishAccountTaxRegime
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
