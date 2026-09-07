@@ -108,6 +108,23 @@ def test_updates_account_invoicing_settings() -> None:
     assert account.invoice_numbering_scope == "customer"
 
 
+def test_updates_account_address_with_explicit_null_fields() -> None:
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        assert request.method == "PATCH"
+        assert json.loads(request.body or "") == {
+            "address": {"line_1": "Updated street 1", "line_2": None}
+        }
+        payload = account_payload()
+        payload["address"]["line_1"] = "Updated street 1"
+        return json_response(payload)
+
+    account = make_client(handler).accounts.update(
+        "acct_123", address={"line_1": "Updated street 1", "line_2": None}
+    )
+    assert account.address.line_1 == "Updated street 1"
+    assert account.address.line_2 is None
+
+
 def test_response_models_are_frozen_and_preserve_unknown_fields() -> None:
     payload = account_payload()
     payload["future_field"] = {"enabled": True}

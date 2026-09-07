@@ -22,15 +22,18 @@ BASE_CLASS_MAP = {
     for name in (
         "Account",
         "ApiKey",
+        "Balance",
         "BalanceTransaction",
         "Customer",
         "Event",
         "EventDestination",
+        "GlobalAccountTaxRegime",
         "Invoice",
         "InvoiceAmendment",
         "InvoicePdf",
         "InvoiceSeries",
         "PaymentInstruction",
+        "SpanishAccountTaxRegime",
         "TaxId",
         "TaxRegime",
     )

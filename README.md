@@ -149,7 +149,9 @@ idempotency and retry behavior instead of generator-shaped HTTP calls.
 ## Resources
 
 - `client.accounts`
+- `client.account_tax_regimes`
 - `client.api_keys`
+- `client.balances`
 - `client.customers`
 - `client.event_destinations`
 - `client.events`
@@ -164,6 +166,28 @@ Invoices use the domain verbs `issue` and `amend`; they are never updated.
 Account resources expose list, retrieve, and update operations. Customer and
 series and payment-instruction resources expose ordinary create, retrieve,
 update, list and delete operations.
+
+## Account balance and tax-regime state
+
+```python
+balance = client.balances.retrieve("acct_...")
+print(balance.amount)  # Decimal, including zero or negative balances
+
+regime = client.account_tax_regimes.retrieve("acct_...")
+if regime.key == "es" and regime.es.representation is not None:
+    print(regime.es.representation.status)
+```
+
+Balances exist only for Live accounts; retrieving a Test account's balance
+raises `ResourceNotFoundError`. The amount is informational: paid operations
+can still fail with `BalanceExhaustedError` if the balance changes.
+
+Account tax regimes return a `GlobalAccountTaxRegime` or
+`SpanishAccountTaxRegime`. Spanish Test accounts have `es.representation=None`;
+unverified Live representation timestamps can also be `None`. Both resources
+retain `request_id`, preserve unknown fields, and use the client's safe-read
+retry behavior. `client.tax_regimes` continues to expose the general tax
+catalog; `client.account_tax_regimes` exposes account-specific state.
 
 ## Verify webhooks
 

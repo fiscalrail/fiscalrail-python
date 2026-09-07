@@ -6,7 +6,9 @@ import requests
 
 from fiscalrail._resources import (
     AccountsResource,
+    AccountTaxRegimesResource,
     ApiKeysResource,
+    BalancesResource,
     CustomersResource,
     EventDestinationsResource,
     EventsResource,
@@ -43,7 +45,9 @@ class FiscalRail:
             session=session,
         )
         self.accounts = AccountsResource(self._transport)
+        self.account_tax_regimes = AccountTaxRegimesResource(self._transport)
         self.api_keys = ApiKeysResource(self._transport)
+        self.balances = BalancesResource(self._transport)
         self.customers = CustomersResource(self._transport)
         self.event_destinations = EventDestinationsResource(self._transport)
         self.events = EventsResource(self._transport)

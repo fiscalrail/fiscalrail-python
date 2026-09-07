@@ -41,6 +41,22 @@ OPERATIONS: Final[dict[str, Operation]] = {
         response_model="Account",
         success_statuses=(200,),
     ),
+    "retrieveBalance": Operation(
+        method="GET",
+        path="/accounts/{account_id}/balance",
+        tag="Balances",
+        request_model=None,
+        response_model="Balance",
+        success_statuses=(200,),
+    ),
+    "retrieveAccountTaxRegime": Operation(
+        method="GET",
+        path="/accounts/{account_id}/tax-regime",
+        tag="Account tax regimes",
+        request_model=None,
+        response_model="AccountTaxRegime",
+        success_statuses=(200,),
+    ),
     "listApiKeys": Operation(
         method="GET",
         path="/api-keys",
