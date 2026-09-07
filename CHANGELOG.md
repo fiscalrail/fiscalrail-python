@@ -2,7 +2,7 @@
 
 All notable changes to the FiscalRail Python SDK are documented here.
 
-## 0.4.0 — Unreleased
+## 0.4.0 — 2026-09-07
 
 - Add `client.balances.retrieve(account_id)` with precise decimal amounts and
   response metadata.
