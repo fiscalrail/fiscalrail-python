@@ -52,14 +52,14 @@ def spanish_regime_payload() -> dict[str, Any]:
 def test_balance_retrieval_decodes_money_and_response_metadata(amount: str) -> None:
     def handler(request: requests.PreparedRequest) -> requests.Response:
         assert request.method == "GET"
-        assert request.url == "https://api.fiscalrail.test/v1/accounts/acct_123/balance"
+        assert request.url == "https://api.fiscalrail.test/v1/account/balance"
         assert request.body is None
         return json_response(
             {**balance_payload(amount), "future_field": "retained"},
             headers={"Request-Id": "req_balance"},
         )
 
-    balance = make_client(handler).balances.retrieve("acct_123")
+    balance = make_client(handler).balances.retrieve()
 
     assert isinstance(balance, Balance)
     assert balance.amount == Decimal(amount)
@@ -76,14 +76,14 @@ def test_spanish_account_regime_decodes_representation_and_metadata() -> None:
     def handler(request: requests.PreparedRequest) -> requests.Response:
         assert request.method == "GET"
         assert request.url == (
-            "https://api.fiscalrail.test/v1/accounts/acct_123/tax-regime"
+            "https://api.fiscalrail.test/v1/account/tax-regime"
         )
         assert request.body is None
         return json_response(
             spanish_regime_payload(), headers={"Request-Id": "req_regime"}
         )
 
-    regime = make_client(handler).account_tax_regimes.retrieve("acct_123")
+    regime = make_client(handler).account_tax_regimes.retrieve()
 
     assert isinstance(regime, SpanishAccountTaxRegime)
     assert regime.request_id == "req_regime"
@@ -104,7 +104,7 @@ def test_spanish_test_account_has_no_representation() -> None:
     payload["es"]["representation"] = None
     regime = make_client(
         lambda request: json_response(payload)
-    ).account_tax_regimes.retrieve("acct_test")
+    ).account_tax_regimes.retrieve()
 
     assert isinstance(regime, SpanishAccountTaxRegime)
     assert regime.es.representation is None
@@ -117,7 +117,7 @@ def test_unverified_representation_has_nullable_timestamps() -> None:
     )
     regime = make_client(
         lambda request: json_response(payload)
-    ).account_tax_regimes.retrieve("acct_123")
+    ).account_tax_regimes.retrieve()
 
     assert isinstance(regime, SpanishAccountTaxRegime)
     assert regime.es.representation is not None
@@ -134,7 +134,7 @@ def test_global_account_regime_preserves_unknown_fields_and_metadata() -> None:
     }
     regime = make_client(
         lambda request: json_response(payload, headers={"Request-Id": "req_global"})
-    ).account_tax_regimes.retrieve("acct_123")
+    ).account_tax_regimes.retrieve()
 
     assert isinstance(regime, GlobalAccountTaxRegime)
     assert regime.request_id == "req_global"
@@ -175,7 +175,7 @@ def test_invalid_account_regimes_raise_parse_errors_with_request_id(
         lambda request: json_response(payload, headers={"Request-Id": "req_invalid"})
     )
     with pytest.raises(ResponseParseError) as caught:
-        client.account_tax_regimes.retrieve("acct_123")
+        client.account_tax_regimes.retrieve()
 
     assert caught.value.field == field
     assert caught.value.request_id == "req_invalid"
@@ -186,7 +186,7 @@ def test_invalid_balance_reports_the_amount_field() -> None:
     payload["amount"] = True
     client = make_client(lambda request: json_response(payload))
     with pytest.raises(ResponseParseError) as caught:
-        client.balances.retrieve("acct_123")
+        client.balances.retrieve()
     assert caught.value.field == "$.amount"
 
 
@@ -200,7 +200,7 @@ def test_account_resources_propagate_not_found(resource: str) -> None:
         )
     )
     with pytest.raises(ResourceNotFoundError) as caught:
-        getattr(client, resource).retrieve("acct_test")
+        getattr(client, resource).retrieve()
     assert caught.value.request_id == "req_missing"
 
 
@@ -223,7 +223,7 @@ def test_account_reads_use_safe_retries(resource: str, payload: dict[str, Any]) 
     with FiscalRail(
         "ak_test_example", max_retries=1, session=make_session(handler)
     ) as sdk:
-        getattr(sdk, resource).retrieve("acct_123")
+        getattr(sdk, resource).retrieve()
 
     assert len(calls) == 2
     assert calls[0].url == calls[1].url

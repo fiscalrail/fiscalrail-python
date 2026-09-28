@@ -17,17 +17,9 @@ class Operation:
 
 
 OPERATIONS: Final[dict[str, Operation]] = {
-    "listAccounts": Operation(
-        method="GET",
-        path="/accounts",
-        tag="Accounts",
-        request_model=None,
-        response_model="AccountList",
-        success_statuses=(200,),
-    ),
     "retrieveAccount": Operation(
         method="GET",
-        path="/accounts/{id}",
+        path="/account",
         tag="Accounts",
         request_model=None,
         response_model="Account",
@@ -35,15 +27,31 @@ OPERATIONS: Final[dict[str, Operation]] = {
     ),
     "updateAccount": Operation(
         method="PATCH",
-        path="/accounts/{id}",
+        path="/account",
         tag="Accounts",
         request_model="AccountUpdate",
         response_model="Account",
         success_statuses=(200,),
     ),
+    "retrieveAccountInvoicing": Operation(
+        method="GET",
+        path="/account/invoicing",
+        tag="Accounts",
+        request_model=None,
+        response_model="AccountInvoicing",
+        success_statuses=(200,),
+    ),
+    "updateAccountInvoicing": Operation(
+        method="PATCH",
+        path="/account/invoicing",
+        tag="Accounts",
+        request_model="AccountInvoicingUpdate",
+        response_model="AccountInvoicing",
+        success_statuses=(200,),
+    ),
     "retrieveBalance": Operation(
         method="GET",
-        path="/accounts/{account_id}/balance",
+        path="/account/balance",
         tag="Balances",
         request_model=None,
         response_model="Balance",
@@ -51,7 +59,7 @@ OPERATIONS: Final[dict[str, Operation]] = {
     ),
     "retrieveAccountTaxRegime": Operation(
         method="GET",
-        path="/accounts/{account_id}/tax-regime",
+        path="/account/tax-regime",
         tag="Account tax regimes",
         request_model=None,
         response_model="AccountTaxRegime",
@@ -259,7 +267,7 @@ OPERATIONS: Final[dict[str, Operation]] = {
     ),
     "retrieveTaxId": Operation(
         method="GET",
-        path="/tax_ids/{id}",
+        path="/tax-ids/{id}",
         tag="Tax identifiers",
         request_model=None,
         response_model="TaxId",

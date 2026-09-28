@@ -32,11 +32,6 @@ PaymentInstructionId: TypeAlias = str
 Live: TypeAlias = bool
 
 
-class InvoiceLocale(StrEnum):
-    en = "en"
-    es = "es"
-
-
 @dataclass(frozen=True, kw_only=True, slots=True)
 class Address1(FiscalRailModel):
     line_1: str | None = None
@@ -45,6 +40,19 @@ class Address1(FiscalRailModel):
     postal_code: str | None = None
     state: str | None = None
     country: str | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class AccountUpdate(FiscalRailModel):
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    address: Address1 | None = None
+
+
+class InvoiceLocale(StrEnum):
+    en = "en"
+    es = "es"
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -663,9 +671,20 @@ class ValidationDetail(FiscalRailModel):
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class AccountUpdate(FiscalRailModel):
-    address: Address1 | None = None
-    invoice_numbering_scope: AccountInvoiceNumberingScope | None = (
+class AccountInvoicing(ResponseModel):
+    object: Literal["account_invoicing"]
+    locale: InvoiceLocale
+    footer: str | None
+    numbering_scope: AccountInvoiceNumberingScope
+    default_series: AccountDefaultSeries
+    default_payment_instructions: list[PaymentInstructionId]
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class AccountInvoicingUpdate(FiscalRailModel):
+    locale: InvoiceLocale | None = None
+    footer: str | None = None
+    numbering_scope: AccountInvoiceNumberingScope | None = (
         AccountInvoiceNumberingScope.account
     )
     default_series: AccountDefaultSeries | None = None
@@ -879,19 +898,8 @@ class Account(ResponseModel):
     address: Address
     tax_regime: str
     timezone: str
-    invoice_locale: InvoiceLocale
-    invoice_numbering_scope: AccountInvoiceNumberingScope
-    default_series: AccountDefaultSeries
-    default_payment_instructions: list[PaymentInstructionId]
     created_at: datetime
     updated_at: datetime
-
-
-@dataclass(frozen=True, kw_only=True, slots=True)
-class AccountList(FiscalRailModel):
-    object: Literal["list"]
-    has_more: bool
-    data: list[Account]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)

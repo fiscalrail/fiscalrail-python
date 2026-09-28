@@ -131,9 +131,11 @@ def test_tax_regimes_cover_list_and_retrieve() -> None:
 
 
 def test_tax_ids_retrieve() -> None:
-    resource = make_client(
-        lambda request: json_response(tax_id_payload())
-    ).tax_ids
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        assert request.url == "https://api.fiscalrail.test/v1/tax-ids/tax_id_123"
+        return json_response(tax_id_payload())
+
+    resource = make_client(handler).tax_ids
 
     tax_id = resource.retrieve("tax_id_123")
 

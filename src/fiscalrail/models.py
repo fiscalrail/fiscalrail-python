@@ -7,6 +7,7 @@ from fiscalrail._generated.models import (
     Account,
     AccountDefaultSeries,
     AccountInvoiceNumberingScope,
+    AccountInvoicing,
     AccountTaxRegime,
     Address,
     ApiKey,
@@ -78,6 +79,7 @@ class Page(ResponseModel, Generic[ItemT]):
 
 __all__ = [
     "Account",
+    "AccountInvoicing",
     "AccountDefaultSeries",
     "AccountInvoiceNumberingScope",
     "AccountTaxRegime",

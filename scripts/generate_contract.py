@@ -21,6 +21,7 @@ BASE_CLASS_MAP = {
     name: "fiscalrail._model.ResponseModel"
     for name in (
         "Account",
+        "AccountInvoicing",
         "ApiKey",
         "Balance",
         "BalanceTransaction",
