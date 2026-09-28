@@ -93,8 +93,7 @@ instruction = client.payment_instructions.create(
     },
 )
 
-client.accounts.update(
-    "acct_...",
+client.account_invoicing.update(
     default_payment_instructions=[instruction.id],
 )
 
@@ -149,6 +148,7 @@ idempotency and retry behavior instead of generator-shaped HTTP calls.
 ## Resources
 
 - `client.accounts`
+- `client.account_invoicing`
 - `client.account_tax_regimes`
 - `client.api_keys`
 - `client.balances`
@@ -163,17 +163,17 @@ idempotency and retry behavior instead of generator-shaped HTTP calls.
 - `client.tax_regimes`
 
 Invoices use the domain verbs `issue` and `amend`; they are never updated.
-Account resources expose list, retrieve, and update operations. Customer and
+The current account and its invoicing settings each expose retrieve and update. Customer and
 series and payment-instruction resources expose ordinary create, retrieve,
 update, list and delete operations.
 
 ## Account balance and tax-regime state
 
 ```python
-balance = client.balances.retrieve("acct_...")
+balance = client.balances.retrieve()
 print(balance.amount)  # Decimal, including zero or negative balances
 
-regime = client.account_tax_regimes.retrieve("acct_...")
+regime = client.account_tax_regimes.retrieve()
 if regime.key == "es" and regime.es.representation is not None:
     print(regime.es.representation.status)
 ```

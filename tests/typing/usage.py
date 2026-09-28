@@ -24,9 +24,9 @@ from fiscalrail.webhooks import construct_event
 
 client = FiscalRail(api_key="ak_test_example")
 
-balance: Balance = client.balances.retrieve("acct_example")
+balance: Balance = client.balances.retrieve()
 balance_amount: Decimal = balance.amount
-account_regime: AccountTaxRegime = client.account_tax_regimes.retrieve("acct_example")
+account_regime: AccountTaxRegime = client.account_tax_regimes.retrieve()
 if account_regime.key == "es" and account_regime.es.representation is not None:
     representation_status: str = account_regime.es.representation.status
 
@@ -44,10 +44,13 @@ payment_instruction: PaymentInstruction = client.payment_instructions.create(
 
 account_update = AccountUpdateParams(
     address={"line_1": "Updated street 1", "line_2": None},
-    invoice_numbering_scope="customer",
+    name="Example supplier",
+)
+client.accounts.update(**account_update)
+client.account_invoicing.update(
+    numbering_scope="customer",
     default_payment_instructions=[payment_instruction.id],
 )
-client.accounts.update("acct_example", **account_update)
 
 customer_params = CustomerCreateParams(
     name="Acme SL",

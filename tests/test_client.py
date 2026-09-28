@@ -31,14 +31,6 @@ def account_payload() -> dict[str, Any]:
         "address": address_payload(),
         "tax_regime": "es",
         "timezone": "Europe/Madrid",
-        "invoice_locale": "en",
-        "invoice_numbering_scope": "account",
-        "default_series": {
-            "invoice": "inv_ser_123",
-            "credit_note": "inv_ser_456",
-            "amendment": "inv_ser_789",
-        },
-        "default_payment_instructions": ["pay_ins_123"],
         "created_at": "2026-08-16T10:00:00Z",
         "updated_at": "2026-08-16T10:00:00Z",
     }
@@ -47,14 +39,10 @@ def account_payload() -> dict[str, Any]:
 def test_accepts_an_explicit_api_key() -> None:
     with FiscalRail(
         "ak_test_explicit",
-        session=make_session(
-            lambda request: json_response(
-                {"object": "list", "has_more": False, "data": []}
-            )
-        ),
+        session=make_session(lambda request: json_response(account_payload())),
     ) as client:
-        page = client.accounts.list()
-    assert page.data == []
+        account = client.accounts.retrieve()
+    assert account.id == "acct_123"
 
 
 def test_rejects_an_empty_api_key() -> None:
@@ -64,48 +52,47 @@ def test_rejects_an_empty_api_key() -> None:
 
 def test_sends_authentication_and_parses_account() -> None:
     def handler(request: requests.PreparedRequest) -> requests.Response:
+        assert request.url == "https://api.fiscalrail.test/v1/account"
         assert request.headers["Authorization"] == "Bearer ak_test_example"
         assert request.headers["User-Agent"].startswith("fiscalrail-python/")
         return json_response(
-            {"object": "list", "has_more": False, "data": [account_payload()]},
+            account_payload(),
             headers={"Request-Id": "req_123"},
         )
 
-    page = make_client(handler).accounts.list()
-    assert page.request_id == "req_123"
-    assert page.data[0].live is False
-    assert page.data[0].invoice_numbering_scope == "account"
-    assert page.data[0].default_series.invoice == "inv_ser_123"
-    assert page.data[0].default_payment_instructions == ["pay_ins_123"]
+    account = make_client(handler).accounts.retrieve()
+    assert account.request_id == "req_123"
+    assert account.live is False
+    assert account.id == "acct_123"
 
 
-def test_updates_account_invoicing_settings() -> None:
-    def handler(request: requests.PreparedRequest) -> requests.Response:
-        assert request.method == "PATCH"
-        assert request.url == "https://api.fiscalrail.test/v1/accounts/acct_123"
-        assert json.loads(request.body or "") == {
-            "invoice_numbering_scope": "customer",
-            "default_series": {
-                "invoice": "inv_ser_123",
-                "credit_note": "inv_ser_456",
-                "amendment": "inv_ser_789",
-            },
-        }
-        payload = account_payload()
-        payload["invoice_numbering_scope"] = "customer"
-        return json_response(payload)
-
-    account = make_client(handler).accounts.update(
-        "acct_123",
-        invoice_numbering_scope="customer",
-        default_series={
+def test_retrieves_and_updates_account_invoicing_settings() -> None:
+    payload = {
+        "object": "account_invoicing",
+        "locale": "en",
+        "footer": None,
+        "numbering_scope": "account",
+        "default_series": {
             "invoice": "inv_ser_123",
             "credit_note": "inv_ser_456",
             "amendment": "inv_ser_789",
         },
-    )
+        "default_payment_instructions": ["pay_ins_123"],
+    }
+    calls: list[requests.PreparedRequest] = []
 
-    assert account.invoice_numbering_scope == "customer"
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        calls.append(request)
+        assert request.url == "https://api.fiscalrail.test/v1/account/invoicing"
+        if request.method == "PATCH":
+            assert json.loads(request.body or "") == {"numbering_scope": "customer"}
+            return json_response({**payload, "numbering_scope": "customer"})
+        return json_response(payload, headers={"Request-Id": "req_invoicing"})
+
+    resource = make_client(handler).account_invoicing
+    assert resource.retrieve().request_id == "req_invoicing"
+    assert resource.update(numbering_scope="customer").numbering_scope == "customer"
+    assert [call.method for call in calls] == ["GET", "PATCH"]
 
 
 def test_updates_account_address_with_explicit_null_fields() -> None:
@@ -119,7 +106,7 @@ def test_updates_account_address_with_explicit_null_fields() -> None:
         return json_response(payload)
 
     account = make_client(handler).accounts.update(
-        "acct_123", address={"line_1": "Updated street 1", "line_2": None}
+        address={"line_1": "Updated street 1", "line_2": None}
     )
     assert account.address.line_1 == "Updated street 1"
     assert account.address.line_2 is None
@@ -129,12 +116,7 @@ def test_response_models_are_frozen_and_preserve_unknown_fields() -> None:
     payload = account_payload()
     payload["future_field"] = {"enabled": True}
 
-    page = make_client(
-        lambda request: json_response(
-            {"object": "list", "has_more": False, "data": [payload]}
-        )
-    ).accounts.list()
-    account = page.data[0]
+    account = make_client(lambda request: json_response(payload)).accounts.retrieve()
 
     assert account.extra_fields == {"future_field": {"enabled": True}}
     assert account.future_field == {"enabled": True}
@@ -154,15 +136,11 @@ def test_injected_session_remains_caller_owned() -> None:
     session = TrackingSession()
     session.mount(
         "https://",
-        HandlerAdapter(
-            lambda request: json_response(
-                {"object": "list", "has_more": False, "data": []}
-            )
-        ),
+        HandlerAdapter(lambda request: json_response(account_payload())),
     )
 
     client = FiscalRail(api_key="ak_test_example", session=session)
-    client.accounts.list()
+    client.accounts.retrieve()
     client.close()
 
     assert session.closed is False

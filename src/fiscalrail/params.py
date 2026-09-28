@@ -6,6 +6,9 @@ from fiscalrail._generated.params import (
     InvoiceAmendmentReason,
     InvoiceLocale,
 )
+from fiscalrail._generated.params import (
+    AccountInvoicingUpdate as AccountInvoicingUpdateParams,
+)
 from fiscalrail._generated.params import AccountUpdate as AccountUpdateParams
 from fiscalrail._generated.params import (
     AddressCreate as AddressCreateParams,
@@ -70,6 +73,7 @@ __all__ = [
     "AccountDefaultSeriesParams",
     "AccountInvoiceNumberingScope",
     "AccountUpdateParams",
+    "AccountInvoicingUpdateParams",
     "AddressCreateParams",
     "AddressUpdateParams",
     "ApiKeyCreateParams",

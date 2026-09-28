@@ -29,9 +29,6 @@ PaymentInstructionId: TypeAlias = str
 Live: TypeAlias = bool
 
 
-InvoiceLocale: TypeAlias = Literal["en", "es"]
-
-
 class Address1(TypedDict, total=False):
     line_1: str | None
     line_2: str | None
@@ -39,6 +36,16 @@ class Address1(TypedDict, total=False):
     postal_code: str | None
     state: str | None
     country: str | None
+
+
+class AccountUpdate(TypedDict, total=False):
+    name: str
+    email: str | None
+    phone: str | None
+    address: Address1
+
+
+InvoiceLocale: TypeAlias = Literal["en", "es"]
 
 
 class AccountDefaultSeries(TypedDict, total=False):
@@ -546,9 +553,19 @@ class ValidationDetail(TypedDict, total=False):
     metadata: Required[dict[str, Any]]
 
 
-class AccountUpdate(TypedDict, total=False):
-    address: Address1
-    invoice_numbering_scope: AccountInvoiceNumberingScope
+class AccountInvoicing(TypedDict, total=False):
+    object: Required[Literal["account_invoicing"]]
+    locale: Required[InvoiceLocale]
+    footer: Required[str | None]
+    numbering_scope: Required[AccountInvoiceNumberingScope]
+    default_series: Required[AccountDefaultSeries]
+    default_payment_instructions: Required[list[PaymentInstructionId]]
+
+
+class AccountInvoicingUpdate(TypedDict, total=False):
+    locale: InvoiceLocale
+    footer: str | None
+    numbering_scope: AccountInvoiceNumberingScope
     default_series: AccountDefaultSeries
     default_payment_instructions: list[PaymentInstructionId]
 
@@ -737,18 +754,8 @@ class Account(TypedDict, total=False):
     address: Required[Address]
     tax_regime: Required[str]
     timezone: Required[str]
-    invoice_locale: Required[InvoiceLocale]
-    invoice_numbering_scope: Required[AccountInvoiceNumberingScope]
-    default_series: Required[AccountDefaultSeries]
-    default_payment_instructions: Required[list[PaymentInstructionId]]
     created_at: Required[datetime]
     updated_at: Required[datetime]
-
-
-class AccountList(TypedDict, total=False):
-    object: Required[Literal["list"]]
-    has_more: Required[bool]
-    data: Required[list[Account]]
 
 
 class SpanishAccountTaxRegime(TypedDict, total=False):

@@ -12,6 +12,7 @@ from fiscalrail._transport import JsonResponse, Transport
 from fiscalrail.errors import ResponseParseError
 from fiscalrail.models import (
     Account,
+    AccountInvoicing,
     AccountTaxRegime,
     ApiKey,
     Balance,
@@ -31,6 +32,7 @@ from fiscalrail.models import (
     TaxRegime,
 )
 from fiscalrail.params import (
+    AccountInvoicingUpdateParams,
     AccountUpdateParams,
     ApiKeyCreateParams,
     CustomerCreateParams,
@@ -61,7 +63,8 @@ WRAPPED_OPERATION_IDS = frozenset(
         "createEventDestination",
         "disableEventDestination",
         "enableEventDestination",
-        "listAccounts",
+        "retrieveAccountInvoicing",
+        "updateAccountInvoicing",
         "listApiKeys",
         "listCustomers",
         "listEventDestinations",
@@ -147,34 +150,45 @@ class AccountsResource:
     def __init__(self, transport: Transport) -> None:
         self._transport = transport
 
-    def list(self) -> Page[Account]:
+    def retrieve(self) -> Account:
         response = self._transport.request_json(
-            *_operation("listAccounts"), retry_safe=True
-        )
-        return _parse_page(Account, response)
-
-    def retrieve(self, account_id: str) -> Account:
-        response = self._transport.request_json(
-            *_operation("retrieveAccount", id=account_id), retry_safe=True
+            *_operation("retrieveAccount"), retry_safe=True
         )
         return _parse(Account, response)
 
-    def update(self, account_id: str, **params: Unpack[AccountUpdateParams]) -> Account:
+    def update(self, **params: Unpack[AccountUpdateParams]) -> Account:
         response = self._transport.request_json(
-            *_operation("updateAccount", id=account_id),
-            body=params,
-            retry_safe=False,
+            *_operation("updateAccount"), body=params, retry_safe=False
         )
         return _parse(Account, response)
+
+
+class AccountInvoicingResource:
+    def __init__(self, transport: Transport) -> None:
+        self._transport = transport
+
+    def retrieve(self) -> AccountInvoicing:
+        response = self._transport.request_json(
+            *_operation("retrieveAccountInvoicing"), retry_safe=True
+        )
+        return _parse(AccountInvoicing, response)
+
+    def update(
+        self, **params: Unpack[AccountInvoicingUpdateParams]
+    ) -> AccountInvoicing:
+        response = self._transport.request_json(
+            *_operation("updateAccountInvoicing"), body=params, retry_safe=False
+        )
+        return _parse(AccountInvoicing, response)
 
 
 class BalancesResource:
     def __init__(self, transport: Transport) -> None:
         self._transport = transport
 
-    def retrieve(self, account_id: str) -> Balance:
+    def retrieve(self) -> Balance:
         response = self._transport.request_json(
-            *_operation("retrieveBalance", account_id=account_id), retry_safe=True
+            *_operation("retrieveBalance"), retry_safe=True
         )
         return _parse(Balance, response)
 
@@ -183,9 +197,9 @@ class AccountTaxRegimesResource:
     def __init__(self, transport: Transport) -> None:
         self._transport = transport
 
-    def retrieve(self, account_id: str) -> AccountTaxRegime:
+    def retrieve(self) -> AccountTaxRegime:
         response = self._transport.request_json(
-            *_operation("retrieveAccountTaxRegime", account_id=account_id),
+            *_operation("retrieveAccountTaxRegime"),
             retry_safe=True,
         )
         # The contract discriminates this response by its regime key. Both

@@ -2,6 +2,12 @@
 
 All notable changes to the FiscalRail Python SDK are documented here.
 
+## 0.5.0 — 2026-09-28
+
+- Match the deployed current-account API routes and split invoicing settings into a dedicated resource.
+- Use `/tax-ids/{id}` for tax ID retrieval.
+- Regenerate response and request types from the updated FiscalRail OpenAPI contract.
+
 ## 0.4.0 — 2026-09-07
 
 - Add `client.balances.retrieve(account_id)` with precise decimal amounts and

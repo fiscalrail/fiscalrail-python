@@ -5,6 +5,7 @@ from types import TracebackType
 import requests
 
 from fiscalrail._resources import (
+    AccountInvoicingResource,
     AccountsResource,
     AccountTaxRegimesResource,
     ApiKeysResource,
@@ -45,6 +46,7 @@ class FiscalRail:
             session=session,
         )
         self.accounts = AccountsResource(self._transport)
+        self.account_invoicing = AccountInvoicingResource(self._transport)
         self.account_tax_regimes = AccountTaxRegimesResource(self._transport)
         self.api_keys = ApiKeysResource(self._transport)
         self.balances = BalancesResource(self._transport)
