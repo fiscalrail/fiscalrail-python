@@ -37,13 +37,22 @@ def spanish_regime_payload() -> dict[str, Any]:
         "account": "acct_123",
         "key": "es",
         "es": {
+            "submission": {
+                "kind": "represented",
+                "ready": True,
+                "status": "verified",
+                "error_code": None,
+                "last_checked_at": "2026-09-07T10:00:00Z",
+                "certificate_expires_at": None,
+            },
+            "pending_submission": None,
             "representation": {
                 "kind": "aeat_registered_power",
                 "power_code": "IZ860",
                 "status": "verified",
                 "verified_at": "2026-09-07T10:00:00Z",
                 "last_checked_at": "2026-09-07T10:00:00Z",
-            }
+            },
         },
     }
 
@@ -75,9 +84,7 @@ def test_balance_retrieval_decodes_money_and_response_metadata(amount: str) -> N
 def test_spanish_account_regime_decodes_representation_and_metadata() -> None:
     def handler(request: requests.PreparedRequest) -> requests.Response:
         assert request.method == "GET"
-        assert request.url == (
-            "https://api.fiscalrail.test/v1/account/tax-regime"
-        )
+        assert request.url == ("https://api.fiscalrail.test/v1/account/tax-regime")
         assert request.body is None
         return json_response(
             spanish_regime_payload(), headers={"Request-Id": "req_regime"}
@@ -102,6 +109,7 @@ def test_spanish_account_regime_decodes_representation_and_metadata() -> None:
 def test_spanish_test_account_has_no_representation() -> None:
     payload = spanish_regime_payload()
     payload["es"]["representation"] = None
+    payload["es"]["submission"] = None
     regime = make_client(
         lambda request: json_response(payload)
     ).account_tax_regimes.retrieve()
@@ -164,7 +172,7 @@ def test_global_account_regime_preserves_unknown_fields_and_metadata() -> None:
                 "key": "es",
                 "es": {},
             },
-            "$.es.representation",
+            "$.es.pending_submission",
         ),
     ],
 )
@@ -228,3 +236,101 @@ def test_account_reads_use_safe_retries(resource: str, payload: dict[str, Any]) 
     assert len(calls) == 2
     assert calls[0].url == calls[1].url
     assert all(request.method == "GET" for request in calls)
+
+
+@pytest.mark.parametrize("password", [None, "", "@secret;é\r\nnot-a-header"])
+def test_certificate_upload_sends_binary_multipart_and_decodes_pending(
+    password: str | None,
+) -> None:
+    from email import policy
+    from email.parser import BytesParser
+    from io import BytesIO
+
+    content = b"\x00\xffPKCS12\r\n"
+    file = BytesIO(content)
+    payload = spanish_regime_payload()
+    payload["es"]["pending_submission"] = {
+        "kind": "direct",
+        "status": "pending_verification",
+        "error_code": None,
+        "last_checked_at": None,
+        "certificate_expires_at": "2027-09-07T10:00:00Z",
+    }
+
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        assert request.method == "POST"
+        assert request.url.endswith("/account/tax-regime/es/certificate")
+        assert "application/json" not in request.headers["Content-Type"]
+        assert isinstance(request.body, bytes)
+        message = BytesParser(policy=policy.default).parsebytes(
+            f"Content-Type: {request.headers['Content-Type']}\r\n\r\n".encode()
+            + request.body
+        )
+        parts = {
+            part.get_param("name", header="content-disposition"): part
+            for part in message.iter_parts()
+        }
+        assert parts["certificate_file"].get_payload(decode=True) == content
+        if password is None:
+            assert "certificate_password" not in parts
+        else:
+            assert (
+                parts["certificate_password"].get_payload(decode=True)
+                == password.encode()
+            )
+        return json_response(
+            payload, status_code=202, headers={"Request-Id": "req_upload"}
+        )
+
+    result = make_client(handler).account_tax_regimes.es.upload_certificate(
+        certificate_file=file, certificate_password=password
+    )
+    assert not file.closed
+    assert result.request_id == "req_upload"
+    assert result.es.pending_submission.status == "pending_verification"
+    assert result.es.submission.ready
+
+
+@pytest.mark.parametrize(
+    ("action", "method", "path", "status"),
+    [
+        ("verify_representation", "POST", "representation/verify", 202),
+        ("verify_submission", "POST", "submission/verify", 202),
+        ("cancel_submission_change", "DELETE", "submission/pending", 200),
+    ],
+)
+def test_es_submission_operations(
+    action: str, method: str, path: str, status: int
+) -> None:
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        assert request.method == method
+        assert request.url.endswith("/account/tax-regime/es/" + path)
+        assert request.body is None
+        return json_response(spanish_regime_payload(), status_code=status)
+
+    assert isinstance(
+        getattr(make_client(handler).account_tax_regimes.es, action)(),
+        SpanishAccountTaxRegime,
+    )
+
+
+def test_upload_does_not_retry_or_close_the_file() -> None:
+    from io import BytesIO
+
+    from fiscalrail.errors import APIError
+
+    calls = []
+
+    def handler(request: requests.PreparedRequest) -> requests.Response:
+        calls.append(request)
+        return json_response(
+            {"error": {"code": "unavailable", "message": "unavailable"}},
+            status_code=503,
+        )
+
+    file = BytesIO(b"certificate")
+    sdk = FiscalRail("test", max_retries=2, session=make_session(handler))
+    with pytest.raises(APIError):
+        sdk.account_tax_regimes.es.upload_certificate(certificate_file=file)
+    assert len(calls) == 1
+    assert not file.closed
