@@ -217,3 +217,33 @@ uv build
 
 Release maintainers should follow the
 [release guide](https://github.com/fiscalrail/fiscalrail-python/blob/main/RELEASING.md).
+
+
+## Spanish AEAT submission
+
+Use a Live Spanish account key. Upload a `.p12`/`.pfx` file (up to 128 KiB),
+including its private key, using native multipart upload. Omit the password for
+an unprotected bundle. The certificate's issuer NIF must match the account.
+
+```python
+import os
+
+with open("issuer.p12", "rb") as certificate:
+    setup = client.account_tax_regimes.es.upload_certificate(
+        certificate_file=certificate,
+        certificate_password=os.environ["CERTIFICATE_PASSWORD"],
+    )
+setup = client.account_tax_regimes.retrieve()
+# Inspect setup.es.pending_submission.status / error_code and setup.es.submission.ready.
+client.account_tax_regimes.es.verify_submission()  # retry the pending or active check
+client.account_tax_regimes.es.cancel_submission_change()
+client.account_tax_regimes.es.verify_representation()  # after granting AEAT authority
+```
+
+Each mutation above is a separate operation; choose the one needed. Upload and
+verification return the account setup while AEAT checks run asynchronously.
+Poll the generic account tax-regime resource for pending verification status,
+error code and the active setup's readiness. A working setup remains active until
+a replacement verifies; failed checks retain the pending certificate for retry.
+Cancelling removes only the pending change. Uploads are not automatically retried.
+The ES mutations use `/account/tax-regime/es/...`; reads use `/account/tax-regime`.

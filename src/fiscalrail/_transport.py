@@ -44,6 +44,8 @@ class Transport:
         path: str,
         *,
         body: Mapping[str, Any] | None = None,
+        files: Mapping[str, tuple[str, bytes, str]] | None = None,
+        form: Mapping[str, str] | None = None,
         params: Mapping[str, Any] | None = None,
         headers: Mapping[str, str] | None = None,
         retry_safe: bool,
@@ -53,6 +55,8 @@ class Transport:
             method,
             path,
             body=body,
+            files=files,
+            form=form,
             params=params,
             headers=headers,
             retry_safe=retry_safe,
@@ -111,6 +115,8 @@ class Transport:
         path: str,
         *,
         body: Mapping[str, Any] | None = None,
+        files: Mapping[str, tuple[str, bytes, str]] | None = None,
+        form: Mapping[str, str] | None = None,
         params: Mapping[str, Any] | None = None,
         headers: Mapping[str, str] | None = None,
         retry_safe: bool,
@@ -129,6 +135,9 @@ class Transport:
             "headers": request_headers,
             "timeout": self._timeout,
         }
+        if files is not None:
+            request_kwargs["files"] = files
+            request_kwargs["data"] = form
         if body is not None:
             request_kwargs["json"] = to_jsonable(body)
         if params:

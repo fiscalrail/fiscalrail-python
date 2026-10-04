@@ -110,6 +110,51 @@ class GlobalAccountTaxRegime(ResponseModel):
     key: Literal["global"]
 
 
+class SpanishAccountSubmissionKind(StrEnum):
+    direct = "direct"
+    represented = "represented"
+
+
+class SpanishSubmissionVerificationStatus(StrEnum):
+    not_started = "not_started"
+    pending_verification = "pending_verification"
+    verified = "verified"
+    invalid = "invalid"
+    unavailable = "unavailable"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SpanishAccountSubmission(FiscalRailModel):
+    kind: SpanishAccountSubmissionKind
+    ready: bool
+    status: SpanishSubmissionVerificationStatus
+    error_code: str | None
+    last_checked_at: datetime | None
+    certificate_expires_at: datetime | None
+
+
+class SpanishPendingSubmissionKind(StrEnum):
+    direct = "direct"
+    represented = "represented"
+
+
+class SpanishPendingSubmissionStatus(StrEnum):
+    not_started = "not_started"
+    pending_verification = "pending_verification"
+    verified = "verified"
+    invalid = "invalid"
+    unavailable = "unavailable"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SpanishPendingSubmission(FiscalRailModel):
+    kind: SpanishPendingSubmissionKind
+    status: SpanishPendingSubmissionStatus
+    error_code: str | None
+    last_checked_at: datetime | None
+    certificate_expires_at: datetime | None
+
+
 class SpanishAccountRepresentationStatus(StrEnum):
     not_started = "not_started"
     pending_verification = "pending_verification"
@@ -582,6 +627,24 @@ class ResourceNotFoundErrorResponse(FiscalRailModel):
     error: ResourceNotFoundError
 
 
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SubmissionConfigurationValidationDetail(FiscalRailModel):
+    field: str
+    message: str
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SubmissionConfigurationError(FiscalRailModel):
+    code: str
+    message: str
+    details: list[SubmissionConfigurationValidationDetail] | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class SubmissionConfigurationErrorResponse(FiscalRailModel):
+    error: SubmissionConfigurationError
+
+
 class InvalidResourceErrorCode(StrEnum):
     invalid_account = "invalid_account"
     invalid_api_key = "invalid_api_key"
@@ -706,6 +769,8 @@ class Event(ResponseModel):
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class SpanishAccountTaxRegimeDetails(FiscalRailModel):
+    pending_submission: SpanishPendingSubmission | None
+    submission: SpanishAccountSubmission | None
     representation: SpanishAccountRepresentation | None
 
 

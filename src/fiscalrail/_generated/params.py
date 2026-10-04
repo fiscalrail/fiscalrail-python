@@ -94,6 +94,39 @@ class GlobalAccountTaxRegime(TypedDict, total=False):
     key: Required[Literal["global"]]
 
 
+SpanishAccountSubmissionKind: TypeAlias = Literal["direct", "represented"]
+
+
+SpanishSubmissionVerificationStatus: TypeAlias = Literal[
+    "not_started", "pending_verification", "verified", "invalid", "unavailable"
+]
+
+
+class SpanishAccountSubmission(TypedDict, total=False):
+    kind: Required[SpanishAccountSubmissionKind]
+    ready: Required[bool]
+    status: Required[SpanishSubmissionVerificationStatus]
+    error_code: Required[str | None]
+    last_checked_at: Required[datetime | None]
+    certificate_expires_at: Required[datetime | None]
+
+
+SpanishPendingSubmissionKind: TypeAlias = Literal["direct", "represented"]
+
+
+SpanishPendingSubmissionStatus: TypeAlias = Literal[
+    "not_started", "pending_verification", "verified", "invalid", "unavailable"
+]
+
+
+class SpanishPendingSubmission(TypedDict, total=False):
+    kind: Required[SpanishPendingSubmissionKind]
+    status: Required[SpanishPendingSubmissionStatus]
+    error_code: Required[str | None]
+    last_checked_at: Required[datetime | None]
+    certificate_expires_at: Required[datetime | None]
+
+
 SpanishAccountRepresentationStatus: TypeAlias = Literal[
     "not_started", "pending_verification", "verified", "revoked", "invalid"
 ]
@@ -478,6 +511,21 @@ class ResourceNotFoundErrorResponse(TypedDict, total=False):
     error: Required[ResourceNotFoundError]
 
 
+class SubmissionConfigurationValidationDetail(TypedDict, total=False):
+    field: Required[str]
+    message: Required[str]
+
+
+class SubmissionConfigurationError(TypedDict, total=False):
+    code: Required[str]
+    message: Required[str]
+    details: list[SubmissionConfigurationValidationDetail]
+
+
+class SubmissionConfigurationErrorResponse(TypedDict, total=False):
+    error: Required[SubmissionConfigurationError]
+
+
 InvalidResourceErrorCode: TypeAlias = Literal[
     "invalid_account",
     "invalid_api_key",
@@ -583,6 +631,8 @@ class Event(TypedDict, total=False):
 
 
 class SpanishAccountTaxRegimeDetails(TypedDict, total=False):
+    pending_submission: Required[SpanishPendingSubmission | None]
+    submission: Required[SpanishAccountSubmission | None]
     representation: Required[SpanishAccountRepresentation | None]
 
 

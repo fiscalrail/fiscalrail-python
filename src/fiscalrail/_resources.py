@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from datetime import date
-from typing import Any, TypeVar, Unpack
+from typing import Any, BinaryIO, TypeVar, Unpack
 from uuid import uuid4
 
 from fiscalrail._binary import BinaryContent
@@ -77,6 +77,10 @@ WRAPPED_OPERATION_IDS = frozenset(
         "renderInvoicePdf",
         "retrieveAccount",
         "retrieveAccountTaxRegime",
+        "uploadAccountCertificate",
+        "verifyAccountRepresentation",
+        "verifyAccountSubmission",
+        "cancelAccountSubmissionChange",
         "retrieveApiKey",
         "retrieveBalance",
         "retrieveCustomer",
@@ -196,6 +200,7 @@ class BalancesResource:
 class AccountTaxRegimesResource:
     def __init__(self, transport: Transport) -> None:
         self._transport = transport
+        self.es = SpanishSubmissionResource(transport)
 
     def retrieve(self) -> AccountTaxRegime:
         response = self._transport.request_json(
@@ -206,6 +211,44 @@ class AccountTaxRegimesResource:
         # generated models validate their literal key and retain response metadata.
         if isinstance(response.data, dict) and response.data.get("key") == "global":
             return _parse(GlobalAccountTaxRegime, response)
+        return _parse(SpanishAccountTaxRegime, response)
+
+
+class SpanishSubmissionResource:
+    def __init__(self, transport: Transport) -> None:
+        self._transport = transport
+
+    def upload_certificate(
+        self, *, certificate_file: BinaryIO, certificate_password: str | None = None
+    ) -> SpanishAccountTaxRegime:
+        content = certificate_file.read(128 * 1024 + 1)
+        if not isinstance(content, bytes):
+            raise TypeError("certificate_file must be opened in binary mode")
+        if len(content) > 128 * 1024:
+            raise ValueError("certificate_file must be at most 128 KiB")
+        response = self._transport.request_json(
+            *_operation("uploadAccountCertificate"),
+            files={
+                "certificate_file": ("certificate.p12", content, "application/x-pkcs12")
+            },
+            form=_params(certificate_password=certificate_password),
+            retry_safe=False,
+        )
+        return _parse(SpanishAccountTaxRegime, response)
+
+    def verify_representation(self) -> SpanishAccountTaxRegime:
+        return self._verify("verifyAccountRepresentation")
+
+    def verify_submission(self) -> SpanishAccountTaxRegime:
+        return self._verify("verifyAccountSubmission")
+
+    def cancel_submission_change(self) -> SpanishAccountTaxRegime:
+        return self._verify("cancelAccountSubmissionChange")
+
+    def _verify(self, operation_id: str) -> SpanishAccountTaxRegime:
+        response = self._transport.request_json(
+            *_operation(operation_id), retry_safe=False
+        )
         return _parse(SpanishAccountTaxRegime, response)
 
 
